@@ -3,4 +3,4 @@
 # .secret拡張子は git 管理から除外する。
 *.secret
 # test ディレクトリ下のすべてのファイルを git 管理から除外する。
-test/*
+secret/*
