@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <title>Document</title>
+<style>
+    .svg-container {
+      width: 100%;
+      max-width: 400px;
+      margin: 0px auto;
+    }
+    svg {
+      width: 100%;
+      height: auto;
+      border: 1px solid #e5e7eb;
+      background-color: #fafafa;
+    }
+.amida-btn {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+    .amida-btn:hover {
+      background-color: #1d4ed8;
+    }
+    .amida-line {
+      stroke: #334155;
+      stroke-width: 4;
+      stroke-linecap: round;
+        stroke: #334155;
+        stroke-width: 4;
+        /* 端をフラットにしてボタン底面とぴったり密着させる */
+        stroke-linecap: butt;
+    }
+    .result-text {
+      font-size: 14px;
+      font-weight: bold;
+      fill: #1e293b;
+      text-anchor: middle;
+      dominant-baseline: middle;
+    }
+
+    .animated-line {
+  /* 線の長さ分の隙間を作って隠す */
+  stroke-dasharray: var(--line-length);
+  stroke-dashoffset: var(--line-length);
+  /* 10秒かけて描画（速度を変えたいときは10sを調整） */
+  animation: drawLineAnim 1s ease-out forwards;
+}
+
+@keyframes drawLineAnim {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+  </style>
+</head>
+<body>
+  <!-- viewBox: 幅 200, 高さ 450 -->
+  <svg viewBox="0 0 230 450" xmlns="http://www.w3.org/2000/svg">
+
+    <!-- 1. 上部のボタン（3つ並び：x=20, 110, 200, 290） -->
+    <!-- 各ボタンの横幅60px、高さ36px。各縦線のX座標(50, 140, 230, 320)の中心に配置 -->
+    <foreignObject x="20" y="20" width="60" height="36">
+      <button id="amida-btn1" class="amida-btn" data-col="0" xmlns="http://www.w3.org/1999/xhtml">チョキ</button>
+    </foreignObject>
+    <foreignObject x="110" y="20" width="60" height="36">
+      <button id="amida-btn2" data-col="1" xmlns="http://www.w3.org/1999/xhtml">B</button>
+    </foreignObject>
+    <foreignObject x="200" y="20" width="60" height="36">
+      <button id="amida-btn3" data-col="2" xmlns="http://www.w3.org/1999/xhtml">C</button>
+    </foreignObject>
+    <g id="amida-layer"></g>
+
+
+
+
+    <!-- 4. 下部の結果テキスト（y=400） -->
+    <text class="result-text" x="50"  y="405">ハズレ</text>
+    <text class="result-text" x="140" y="405">ハズレ</text>
+    <text class="result-text" x="230" y="405">当たり！</text>
+
+    <!-- 2. あみだくじの縦線（y=70 から y=370 まで） -->
+    <g id="base-lines">
+      <!-- 1本目 (ボタンA直結: X=50) -->
+      <line id="base-vertical1" class="fade-box show" x1="50" y1="56"  x2="50" y2="400" />
+      <!-- 2本目 (ボタンB直結: X=140) -->
+      <line id="base-vertical2  x1="1400" y1="56" x2="140" y2="400" />
+      <!-- 3本目 (ボタンC直結: X=230) -->
+      <line id="base-vertical3 x1="230" y1="56" x2="230" y2="400" />
+
+
+
+
+    </g>
+
+
+ 
+
+  </svg> 
+  <script>
+    const layer = document.getElementById("amida-layer");
+    const SVG_NS = "http://www.w3.org/2000/svg";
+
+    // 縦線のX座標 (A:50, B:140, C:230)
+    const xA = 50;
+    const xB = 140;
+    const xC = 230;
+
+    // 線を引く関数
+function drawLine(x1, y1, x2, y2, strokeColor = "red", strokeWidth = 3) {
+  const line = document.createElementNS(SVG_NS, "line");
+  line.setAttribute("x1", x1);
+  line.setAttribute("y1", y1);
+  line.setAttribute("x2", x2);
+  line.setAttribute("y2", y2);
+  line.setAttribute("stroke", strokeColor);
+  line.setAttribute("stroke-width", strokeWidth);
+
+  // 線の長さを計算（三平方の定理）
+  const length = Math.hypot(x2 - x1, y2 - y1);
+  line.style.setProperty("--line-length", `${length}px`);
+  
+  // アニメーション用クラスを付与
+  line.classList.add("animated-line");
+
+  layer.appendChild(line);
+}
+
+// あみだくじ開始時に土台の線を薄く消す
+function startAmida() {
+  document.getElementById('amida-line').classList.remove('show');
+}
+
+
+
+    $("#amida-btn1").on("click",function(){
+      drawLine(55,56 , 50, 400);
+      startAmida();
+      console.log("Aが押された。");
+     })
+  </script>
+</body>
+</html>

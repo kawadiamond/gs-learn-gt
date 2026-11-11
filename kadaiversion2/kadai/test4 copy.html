@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width">
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<link rel="stylesheet" href="css/sample.css">
+<title>じゃんけん</title>
+<style>
+/* ===== ページ全体 ===== */
+body {
+  font-size: 16px;               /* sample.css の 32px を上書き */
+  font-family: "Hiragino Sans", "Meiryo", sans-serif;
+  background-color: #f3f4f6;
+  color: #333;
+}
+header h1 {
+  margin: 0;
+  padding: 12px 0;
+  font-size: 24px;
+}
+main {
+  max-width: 480px;
+  margin: 24px auto;
+  padding: 16px 20px 24px;
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  text-align: center;
+}
+main h1 {
+  font-size: 20px;
+  margin: 8px 0 16px;
+}
+
+/* ===== あみだ部分（スマホ対応） ===== */
+.svg-container {
+  width: 100%;
+  max-width: 360px;
+  margin: 0 auto;
+}
+svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background-color: #fafafa;
+}
+
+/* ボタンを foreignObject の枠いっぱいに広げて中心をそろえる */
+foreignObject button {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-size: 13px;
+  font-weight: bold;
+  border: 2px solid #9ca3af;
+  border-radius: 8px;
+  background-color: #fff;
+  cursor: pointer;
+}
+foreignObject button:hover {
+  background-color: #e0ecff;
+  border-color: #3b82f6;
+}
+/* 下段（ゴール）は押せないので見た目を変える */
+.goal button {
+  background-color: #f3f4f6;
+  cursor: default;
+}
+.goal button:hover {
+  background-color: #f3f4f6;
+  border-color: #9ca3af;
+}
+
+/* 下地のあみだ線 */
+.ladder-bg line {
+  stroke: #d1d5db;
+  stroke-width: 3;
+}
+
+/* ===== 結果表示 ===== */
+.result {
+  margin-top: 16px;
+  padding: 12px;
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  line-height: 1.8;
+}
+#judgment {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+/* ===== 線のアニメーション ===== */
+.animated-line {
+  /* 線の長さ分の隙間を作って隠す */
+  stroke-dasharray: var(--line-length);
+  stroke-dashoffset: var(--line-length);
+  stroke-linecap: round;
+  /* 1秒かけて描画（速度を変えたいときは1sを調整） */
+  animation: drawLineAnim 1s ease-out forwards;
+}
+@keyframes drawLineAnim {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>じゃんけん</h1>
+</header>
+<main>
+  <h1>あみだじゃんけんしましょ！！！！</h1>
+  <!-- viewBox: 幅 240, 高さ 250 -->
+   <div class="svg-container">
+  <svg viewBox="0 0 240 250" xmlns="http://www.w3.org/2000/svg">
+    <!-- 1. 上部のボタン（3等分：x=10, 90, 170） -->
+    <!-- 各ボタンの横幅60px、高さ36px。縦線のX座標(40, 120, 200)が各ボタンの中心 -->
+    <!-- 下地のグレーあみだ線 -->
+    <g class="ladder-bg">
+      <line x1="40" y1="38" x2="40" y2="218"/>
+      <line x1="120" y1="38" x2="120" y2="218"/>
+      <line x1="200" y1="38" x2="200" y2="218"/>
+      <line x1="40" y1="128" x2="200" y2="128"/>
+    </g>
+    <!-- 線のレイヤー（ボタンより奥に描画） -->
+    <g id="amida-layer"></g>
+    <foreignObject x="10" y="20" width="60" height="36">
+      <button id="amida-btn1" class="amida-btn" xmlns="http://www.w3.org/1999/xhtml">1</button>
+    </foreignObject>
+    <foreignObject x="90" y="20" width="60" height="36">
+      <button id="amida-btn2" data-col="1" xmlns="http://www.w3.org/1999/xhtml">2</button>
+    </foreignObject>
+    <foreignObject x="170" y="20" width="60" height="36">
+      <button id="amida-btn3" data-col="2" xmlns="http://www.w3.org/1999/xhtml">3</button>
+    </foreignObject>
+
+    <foreignObject class="goal" x="10" y="200" width="60" height="36">
+      <button id="amida-btn4" class="amida-btn" xmlns="http://www.w3.org/1999/xhtml">1</button>
+    </foreignObject>
+    <foreignObject class="goal" x="90" y="200" width="60" height="36">
+      <button id="amida-btn5" data-col="1" xmlns="http://www.w3.org/1999/xhtml">2</button>
+    </foreignObject>
+    <foreignObject class="goal" x="170" y="200" width="60" height="36">
+      <button id="amida-btn6" data-col="2" xmlns="http://www.w3.org/1999/xhtml">3</button>
+    </foreignObject>
+
+
+
+
+ </svg>
+</div>
+
+
+
+
+
+
+  <div class="result">
+    <div>コンピュータの出した手は？「<span id="pc_hands">なにかな。線をおっていって</span>」</div>
+    <div id="judgment">勝ったかな。負けたかな。</div>
+  </div>
+</main>
+
+<footer></footer>
+<script>
+//じゃんけん用のSCRIPTを書いてください
+const SVG_NS = "http://www.w3.org/2000/svg";
+const layer = document.getElementById("amida-layer");
+
+// 手ごとの軌跡の色
+const COLOR_GU = "red";      // グー
+const COLOR_CHOKI = "blue"; // チョキ
+const COLOR_PA = "green";   // パー
+
+ $("#amida-btn1").html('<span>グー</span>');
+ $("#amida-btn4").html('<span>グー</span>');
+ $("#amida-btn2").html('<span>チョキ</span>');
+ $("#amida-btn5").html('<span>チョキ</span>');
+ $("#amida-btn3").html('<span>パー</span>');
+ $("#amida-btn6").html('<span>パー</span>');
+
+function drawLine(x1, y1, x2, y2, strokeColor = "red", strokeWidth = 3) {
+  const line = document.createElementNS(SVG_NS, "line");
+  line.setAttribute("x1", x1);
+  line.setAttribute("y1", y1);
+  line.setAttribute("x2", x2);
+  line.setAttribute("y2", y2);
+  line.setAttribute("stroke", strokeColor);
+  line.setAttribute("stroke-width", strokeWidth);
+
+  // 線の長さを計算（三平方の定理）
+  const length = Math.hypot(x2 - x1, y2 - y1);
+  line.style.setProperty("--line-length", `${length}px`);
+  
+  // アニメーション用クラスを付与
+  line.classList.add("animated-line");
+
+  layer.appendChild(line);
+};
+
+
+// ボタン1の処理（ボタン3と左右反対の形）
+$("#amida-btn1").on("click",function(){
+//on click funnctionの始まり
+//y軸移動20→100へ//
+drawLine(40,38,40,128,COLOR_GU) ;
+setTimeout(step1,1000);
+
+//function step1 //
+function step1(){
+  next_hand11=Math.ceil(Math.random()*2);
+  if(next_hand11==1){
+    //真下へ → グー（引き分け）
+    drawLine(40,128,40,218,COLOR_GU);
+    setTimeout(step6,1100);
+
+    function step6(){
+  alert("引き分け");
+}
+        return;
+  }
+  else if(next_hand11==2){
+    //x軸移動20→110へ
+    drawLine(40,128,120,128,COLOR_GU);
+next_hand12=Math.ceil(Math.random()*2);
+if(next_hand12==1 && next_hand11==2){
+  setTimeout(step2,1000);
+}else{
+  setTimeout(step3,1000);
+}
+
+//110で真下へ → チョキ（勝ち）
+function step2 (){
+  drawLine(120,128,120,218,COLOR_GU);
+  setTimeout(step6,1100);
+  return;
+}
+function step6(){
+ alert("勝");
+}
+
+//x軸移動110→210へ
+function step3(){
+  drawLine(120,128,200,128,COLOR_GU);
+  setTimeout(step4,1000);
+
+}
+
+//210で真下へ → パー（負け）
+function step4(){
+  drawLine(200,128,200,218,COLOR_GU);
+  setTimeout(step5,1100);
+  return;
+}
+
+function step5(){
+  alert("負け");
+}
+}
+}
+//function step1 終わり//
+
+//on click funnctionの終わり
+});
+
+// ボタン２の処理（真ん中なので分かれ道が3つ）
+$("#amida-btn2").on("click",function(){
+//on click funnctionの始まり
+//y軸移動20→100へ//
+drawLine(120,38,120,128,COLOR_CHOKI) ;
+setTimeout(step1,1000);
+
+//function step1 //
+function step1(){
+  next_hand21=Math.ceil(Math.random()*3);
+  if(next_hand21==1){
+    //真下へ → チョキ（引き分け）
+    drawLine(120,128,120,218,COLOR_CHOKI);
+    setTimeout(step6,1100);
+    return;
+  }
+  else if(next_hand21==2){
+    //x軸移動110→20へ
+    drawLine(120,128,40,128,COLOR_CHOKI);
+    setTimeout(step2,1000);
+  }
+  else{
+    //x軸移動110→210へ
+    drawLine(120,128,200,128,COLOR_CHOKI);
+    setTimeout(step3,1000);
+  }
+}
+//function step1 終わり//
+
+//20で真下へ → グー（負け）
+function step2(){
+  drawLine(40,128,40,218,COLOR_CHOKI);
+  setTimeout(step4,1100);
+}
+
+//210で真下へ → パー（勝ち）
+function step3(){
+  drawLine(200,128,200,218,COLOR_CHOKI);
+  setTimeout(step5,1100);
+}
+
+function step4(){
+  alert("負け");
+}
+function step5(){
+  alert("勝");
+}
+function step6(){
+  alert("引き分け");
+}
+
+//on click funnctionの終わり
+});
+
+// ボタン3の処理
+$("#amida-btn3").on("click",function(){
+//on click funnctionの始まり
+//y軸移動20→100へ//
+drawLine(200,38,200,128,COLOR_PA) ;
+setTimeout(step1,1000);
+
+//function step1 //
+function step1(){
+  next_hand31=Math.ceil(Math.random()*2);
+  if(next_hand31==1){
+    drawLine(200,128,200,218,COLOR_PA);
+    setTimeout(step6,1100);
+
+    function step6(){
+  alert("引き分け");
+}
+        return;
+  }
+  else if(next_hand31==2){
+    drawLine(200,128,120,128,COLOR_PA);
+next_hand32=Math.ceil(Math.random()*2);
+if(next_hand32==1 && next_hand31==2){
+  setTimeout(step2,1000);
+}else{
+  setTimeout(step3,1500);
+}
+
+function step2 (){
+  drawLine(120,128,120,218,COLOR_PA);
+  setTimeout(step6,700);
+  return;
+}
+function step6(){
+ alert("負け");
+}
+
+function step3(){
+  drawLine(120,128,40,128,COLOR_PA);
+  setTimeout(step4,2500);
+
+}
+
+function step4(){
+  drawLine(40,128,40,218,COLOR_PA);
+  setTimeout(step5,700);
+  return;
+}
+
+function step5(){
+  alert("勝");
+}  
+}
+}
+//function step1 終わり//
+
+ 
+//on click funnctionの終わり
+});
+
+
+
+
+
+
+
+
+
+// // ボタン3の処理
+// $("#amida-btn3").on("click",function(){
+//   //ボタンon後最初の一筆　真下に線を引く//
+//  drawLine(200,38,200,128);
+//  // 0.5秒後にステップ1（最初の分岐）へ
+//  setTimeout(step1, 1000);
+
+// function step1(){
+//   //1回目の分岐点 
+//  const next_hand31=Math.ceil(Math.random()*2);
+//  if(next_hand31==1){
+//   //x軸移動（210→110へ）//
+//   drawLine(200,128,120,128);
+//   setTimeout(step2,1000);
+//  }else{
+//   //y軸移動(100→200へ）//
+//     drawLine(200,128,200,218);
+//     alert("引き分け");
+//     return
+//  };}
+
+// // next_hand31==2の場合//
+// function step2(){
+//   if(next_hand31==2){
+//   setTimeout(step2,500);
+// };}
+// //2回目の分岐点//
+// function step2(){
+//  const next_hand32=Math.ceil(Math.random()*2);
+//  if(next_hand32==2){
+//   //x軸移動110→20へ//
+//   drawLine(120,128,40,128);
+//  }else{
+//   //y軸移動100→200へ//
+//   drawLine(120,128,120,218);
+//  };
+// }
+// if(next_hand31==1 && next_hand32==1){
+//   setTimeout(showLose,500);
+//   alert("勝");
+//   return
+// }
+// }else{
+//  drawLine(40,128,40,218);
+//   alert("マケ") ;
+//  return}
+// });
+</script>
+</body>
+</html>

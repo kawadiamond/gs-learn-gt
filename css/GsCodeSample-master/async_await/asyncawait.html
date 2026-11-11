@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+<table border="1" cellpadding="8" cellspacing="0">
+  <thead>
+    <tr>
+      <th>用語</th>
+      <th>意味</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Promise</strong></td>
+      <td>「あとで結果が返ってくるよ」という約束。非同期処理の基本。</td>
+    </tr>
+    <tr>
+      <td><strong>async</strong></td>
+      <td>関数の前につけると「この関数は非同期だよ」と宣言できる。</td>
+    </tr>
+    <tr>
+      <td><strong>await</strong></td>
+      <td>Promise の結果が返ってくるまで <strong>待ってから次に進む</strong>。async 関数の中でしか使えない。</td>
+    </tr>
+  </tbody>
+</table>
+
+
+
+<script>
+
+// お湯を沸かす（3秒かかる処理）
+function boilWater() {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      console.log("お湯が沸きました！");
+      resolve("お湯");
+    }, 3000);
+  });
+}
+
+// 麺をゆでる（2秒かかる処理）
+function cookNoodles(water) {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      console.log(`${water}で麺をゆでました！`);
+      resolve("ゆでた麺");
+    }, 2000);
+  });
+}
+
+// スープを作る（1秒かかる処理）
+function makeSoup() {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      console.log("スープができました！");
+      resolve("スープ");
+    }, 1000);
+  });
+}
+
+// ラーメンを作るメインの関数
+async function makeRamen() {
+  console.log("ラーメン作りスタート！");
+
+  const water = await boilWater();         // お湯が沸くのを待つ
+  const noodles = await cookNoodles(water); // 麺をゆでるのを待つ
+  const soup = await makeSoup();           // スープを作るのを待つ
+
+  console.log(`完成！${noodles}と${soup}でラーメンができました！`);
+}
+
+makeRamen(); // 関数を実行
+
+</script>
+</body>
+</html>

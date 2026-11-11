@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>理解度 確認チェック</title>
+</head>
+<body>
+    
+<script>
+//JSはミリ秒 ms=1000で1秒
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function alpha() {
+  console.log('1');
+  await delay(30);
+  console.log('2');
+}
+
+async function beta() {
+  await delay(0);
+  console.log('3');
+}
+
+console.log('4');
+alpha(); //
+beta();  //
+console.log('5');
+</script>
+</body>
+</html>
